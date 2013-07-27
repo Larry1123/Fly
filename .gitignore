@@ -4,3 +4,14 @@
 *.jar
 *.war
 *.ear
+*.class
+*.svn
+.svn
+.project
+.classpath
+*.jardesc
+*.jar
+/target/
+*.prefs
+*.sw?
+dependency-reduced-pom.xml

@@ -1,0 +1,6 @@
+main-class = net.larry1123.fly.Fly
+name = Fly
+isLibrary = false
+author = Larry1123
+version = 1.1.0-SNAPSHOT
+dependencies = CanaryUtil
