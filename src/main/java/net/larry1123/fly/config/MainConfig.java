@@ -1,19 +1,20 @@
 package net.larry1123.fly.config;
 
-import net.larry1123.fly.Fly;
-import net.larry1123.lib.config.ConfigBase;
-import net.larry1123.lib.config.ConfigFeild;
-import net.larry1123.lib.config.ConfigFile;
+import net.larry1123.util.config.ConfigBase;
+import net.larry1123.util.config.ConfigFeild;
+import net.larry1123.util.config.ConfigFile;
 
 public class MainConfig implements ConfigBase {
 
     private ConfigFile configManager;
 
-    @ConfigFeild( comments = "TODO", name = "Alias" ) // TODO
+    @ConfigFeild (comments = "TODO", name = "Alias") // TODO
     private String alias = new String(""); // lol
 
-    public MainConfig(Fly plugin) {
-        configManager = new ConfigFile(this, plugin.getName());
+    private final float maxspeed = 1;
+
+    public MainConfig(String plugin) {
+        configManager = new ConfigFile(this, plugin);
     }
 
     void reload() {
@@ -22,6 +23,10 @@ public class MainConfig implements ConfigBase {
 
     public String getAlias() {
         return alias;
+    }
+
+    public float getMaxSpeed() {
+        return maxspeed;
     }
 
 }

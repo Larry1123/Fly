@@ -1,16 +1,21 @@
 package net.larry1123.fly.config;
 
-import net.larry1123.fly.Fly;
 
 public class ConfigMan {
 
+    static ConfigMan config = new ConfigMan("Fly");
+
     private MainConfig mainconfig;
 
-    public ConfigMan(Fly plugin) {
+    public ConfigMan(String plugin) {
         mainconfig = new MainConfig(plugin);
     }
 
-    public MainConfig getConfig() {
+    public static ConfigMan getConfig() {
+        return config;
+    }
+
+    public MainConfig getMainConfig() {
         return this.mainconfig;
     }
 

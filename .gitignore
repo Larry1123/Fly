@@ -15,3 +15,5 @@
 *.prefs
 *.sw?
 dependency-reduced-pom.xml
+/.idea/
+*.iml

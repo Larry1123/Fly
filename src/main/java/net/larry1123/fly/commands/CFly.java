@@ -2,15 +2,19 @@ package net.larry1123.fly.commands;
 
 import net.canarymod.Canary;
 import net.canarymod.Translator;
-import net.canarymod.api.GameMode;
 import net.canarymod.api.Server;
 import net.canarymod.api.entity.living.humanoid.HumanCapabilities;
 import net.canarymod.api.entity.living.humanoid.Player;
 import net.canarymod.api.world.blocks.CommandBlock;
 import net.canarymod.chat.MessageReceiver;
-import net.larry1123.lib.chat.FontTools;
-import net.larry1123.lib.plugin.commands.Command;
-import net.larry1123.lib.plugin.commands.CommandData;
+import net.larry1123.fly.api.EndFlyingHook;
+import net.larry1123.fly.api.StartFlyingHook;
+import net.larry1123.fly.config.ConfigMan;
+import net.larry1123.fly.permissions.PermissionsMan;
+import net.larry1123.util.chat.FontTools;
+import net.larry1123.util.plugin.commands.Command;
+import net.larry1123.util.plugin.commands.CommandData;
+import net.larry1123.util.time.StringTime;
 import net.visualillusionsent.utils.LocaleHelper;
 
 public class CFly implements Command {
@@ -19,127 +23,142 @@ public class CFly implements Command {
     private final CommandMan commandman;
     private boolean loaded = false;
     // This is to save servers! Warning do not set speed too high in anyway!
-    private final float maxspeed = 1;
+    private static float maxSpeed = ConfigMan.getConfig().getMainConfig().getMaxSpeed();
 
     public CFly(CommandMan commandman, String[] aliases) {
         this.commandman = commandman;
         command = new CommandData( //
                 aliases, //
-                new String[]{ "net.larry1123.fly.command", }, //
+                new String[] {PermissionsMan.commandNode,}, //
                 "Allows you or someone else to fly!", //
-                "/fly <Player|Speed> <Speed>" //
-                );
-        command.setMax(3);
+                /**
+                 * fly
+                 * fly Speed
+                 * fly Player
+                 * fly Player Time
+                 * fly Player Speed
+                 * fly Player Speed Time
+                 */
+                "/fly [Player|Speed] [Speed|Time] [Time]" //
+        );
+        command.setMax(4);
     }
 
     @Override
     public void execute(MessageReceiver caller, String[] parameters) {
         if ((caller instanceof Server || caller instanceof CommandBlock) && parameters.length == 1) {
+            // Makes sure Server commands and CommandBlock commands at lest have one parameter
             caller.message("Must Provide Player");
             return;
         }
         Player player;
         float speed = (float) 0.05;
+        long time = 0;
         if (caller instanceof Player) {
-            if (parameters.length == 2) {
+            if (parameters.length == 1) {
+                // fly
+                player = (Player) caller;
+            } else if (parameters.length == 2) {
                 if (Canary.getServer().getPlayer(parameters[1]) != null) {
+                    // fly Player
                     player = Canary.getServer().getPlayer(parameters[1]);
-                    if (parameters.length == 2) {
-                        try {
-                            speed = Float.parseFloat(parameters[2].toString());
-                        } catch (NumberFormatException e) {
-                            caller.message(FontTools.RED + "Given Speed is NaN!");
-                        }
-                    }
                 } else {
+                    // fly Speed
                     player = (Player) caller;
-                    if (parameters.length == 2) {
-                        try {
-                            speed = Float.parseFloat(parameters[1].toString());
-                        } catch (NumberFormatException e) {
-                            caller.message(FontTools.RED + "Given Speed is NaN!");
-                        }
+                    try {
+                        speed = Float.parseFloat(parameters[1]);
+                    } catch (NumberFormatException e) {
+                        caller.message(FontTools.RED + "Given Speed is NaN!");
                     }
                 }
             } else {
-                player = (Player) caller;
+                if (Canary.getServer().getPlayer(parameters[1]) != null) {
+                    player = Canary.getServer().getPlayer(parameters[1]);
+                    try {
+                        speed = Float.parseFloat(parameters[2]);
+                    } catch (NumberFormatException e) {
+                        //
+                    }
+                } else {
+                    player = (Player) caller;
+                    try {
+                        speed = Float.parseFloat(parameters[1]);
+                    } catch (NumberFormatException e) {
+                        //
+                    }
+                }
+                boolean speeded = false;
+                try {
+                    // fly Player Speed
+                    speed = Float.parseFloat(parameters[2]);
+                    speeded = true;
+                } catch (NumberFormatException e) {
+                    // fly Player Time
+                    // We know that it is only Time stuff left, or well we can hope
+                    String[] parts = new String[parameters.length - 3];
+                    int y = 0;
+                    for (int i = 2; i >= parameters.length; i++) {
+                        parts[y++] = parameters[i];
+                    }
+                    time = StringTime.millisecondsFromString(parts);
+                }
+                if (speeded) {
+                    // fly Player Speed Time
+                    String[] parts = new String[parameters.length - 4];
+                    int y = 0;
+                    for (int i = 3; i >= parameters.length; i++) {
+                        parts[y++] = parameters[i];
+                    }
+                    time = StringTime.millisecondsFromString(parts);
+                }
             }
         } else {
             player = Canary.getServer().getPlayer(parameters[1]);
             if (parameters.length == 3) {
                 try {
-                    speed = Float.parseFloat(parameters[2].toString());
+                    speed = Float.parseFloat(parameters[2]);
                 } catch (NumberFormatException e) {
                     caller.message(FontTools.RED + "Given Speed is NaN!");
                 }
             }
         }
-        // Limit to at lest Maxspeed for Safety
-        if (speed > maxspeed) {
-            speed = maxspeed;
-        }
         if (player == null) {
             caller.message(FontTools.RED + "Player not found!");
             return;
         }
-        if (!caller.hasPermission("net.larry1123.fly.other")) {
+        if (!PermissionsMan.allowFlyOther(caller)) {
             if (caller != player) {
-                caller.message("You do not have Permisstion to allow others to fly!");
+                caller.message("You do not have Permission to allow others to fly!");
+                return;
             }
         }
-        if (!player.hasPermission("net.larry1123.fly.speed.1")) {
-            for (String perm : player.getPermissionProvider().getPermissionsAsStringList()) {
-                if (perm.startsWith("net.larry1123.fly.speed.0.")) {
-                    try {
-                        float playermax = Float.parseFloat("0." + perm.substring(perm.lastIndexOf(".") + 1));
-                        if (speed > playermax) {
-                            speed = playermax;
-                        }
-                    } catch (NumberFormatException e) {
-                        if (!(caller instanceof Server)) {
-                            caller.message(FontTools.RED + "Player's Permissions are Malformed!");
-                        }
-                        commandman.getPlugin().getLogger().logDerp(player.getName() + "'s Permissions are Malformed!");
-                        if (speed > 0.5) {
-                            speed = (float) 0.05;
-                        }
-                    }
-                } else {
-                    if (speed > 0.5) {
-                        speed = (float) 0.05;
-                    }
-                }
+        // Limit to at lest Maxspeed for Safety
+        if (speed > maxSpeed) {
+            speed = maxSpeed;
+        }
+        // Limit speed to the max the player can go.
+        if (speed > PermissionsMan.getMaxSpeedByCaller(player)) {
+            speed = PermissionsMan.getMaxSpeedByCaller(player);
+            if (caller != player) {
+                caller.message(player.getName() + " can not fly that fast. Setting Speed to " + speed);
+            } else {
+                caller.message("You can not fly that fast. Setting Speed to " + speed);
             }
         }
+        // SetUp Done
         HumanCapabilities capabilities = player.getCapabilities();
-        if (capabilities.isFlying() && !player.getMode().equals(GameMode.CREATIVE)) {
-            capabilities.setFlying(false);
-            capabilities.setMayFly(false);
-            capabilities.setFlySpeed((float) 0.05);
-            player.updateCapabilities();
-            player.message("You may no longer fly.");
-        } else if (!capabilities.isFlying() && !player.getMode().equals(GameMode.CREATIVE)) {
-            capabilities.setMayFly(true);
-            capabilities.setFlying(true);
-            capabilities.setFlySpeed(speed);
-            player.updateCapabilities();
-            String message;
-            if (speed > 0.5) {
-                message = "You may fly now, with the speed of " + FontTools.RED + capabilities.getFlySpeed();
-            } else {
-                message = "You may fly now, with the speed of " + capabilities.getFlySpeed();
+        if (!capabilities.mayFly()) {
+            StartFlyingHook hook = (StartFlyingHook) new StartFlyingHook(player, speed, caller, time).call();
+            if (!hook.isCanceled()) {
+                hook.execute();
+                hook.sendMessages();
             }
-            player.message(message);
-        } else if (player.getMode().equals(GameMode.CREATIVE)) {
-            capabilities.setFlySpeed(speed);
-            player.updateCapabilities();
-            String message;
-            if (speed > 0.5) {
-                message = "Your flight speed is now " + FontTools.RED + capabilities.getFlySpeed();
-            } else {
-                message = "Your flight speed is now " + capabilities.getFlySpeed();
+        } else {
+            EndFlyingHook hook = (EndFlyingHook) new EndFlyingHook(player, caller).call();
+            if (!hook.isCanceled()) {
+                hook.execute();
+                hook.sendMessages();
             }
-            player.message(message);
         }
     }
 
