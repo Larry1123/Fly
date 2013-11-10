@@ -7,7 +7,7 @@ import net.canarymod.tasks.ServerTask;
 import net.canarymod.tasks.ServerTaskManager;
 import net.canarymod.tasks.TaskOwner;
 import net.larry1123.fly.Fly;
-import net.larry1123.util.time.StringTime;
+import net.larry1123.util.api.time.StringTime;
 import org.apache.commons.lang3.time.DateUtils;
 
 import java.util.HashMap;

@@ -5,7 +5,7 @@ import net.canarymod.api.entity.living.humanoid.Player;
 import net.canarymod.api.world.blocks.CommandBlock;
 import net.canarymod.chat.MessageReceiver;
 import net.canarymod.user.Group;
-import net.larry1123.fly.config.ConfigMan;
+import net.larry1123.fly.Fly;
 import net.larry1123.util.logger.EELogger;
 
 public class PermissionsMan {
@@ -16,13 +16,21 @@ public class PermissionsMan {
     public static final String speedPartNode = speedNode + ".0.";
     public static final String maxNode = "net.larry1123.fly.speed.max";
 
-    private static float maxSpeed = ConfigMan.getConfig().getMainConfig().getMaxSpeed();
+    private static float maxSpeed = Fly.getPlugin().getConfigMan().getMainConfig().getMaxSpeed();
 
     public static boolean allowCommand(MessageReceiver caller) {
         return caller.hasPermission(commandNode);
     }
 
     public static boolean allowFlyOther(MessageReceiver caller) {
+        if (caller instanceof Server || caller instanceof CommandBlock) {
+            return true;
+        }
+        if (caller instanceof Player) {
+            if (((Player) caller).isAdmin()) {
+                return true;
+            }
+        }
         return caller.hasPermission(otherNode);
     }
 
@@ -52,7 +60,7 @@ public class PermissionsMan {
 
     public static float getMaxSpeedByCaller(MessageReceiver caller) {
         if (caller instanceof Server || caller instanceof CommandBlock) {
-            return ConfigMan.getConfig().getMainConfig().getMaxSpeed();
+            return Fly.getPlugin().getConfigMan().getMainConfig().getMaxSpeed();
         } else if (caller instanceof Player) {
             Player player = (Player) caller;
             return getMaxSpeedForPlayer(player);

@@ -1,18 +1,14 @@
 package net.larry1123.fly.config;
 
 
+import net.canarymod.plugin.Plugin;
+
 public class ConfigMan {
 
-    static ConfigMan config = new ConfigMan("Fly");
+    private final MainConfig mainconfig;
 
-    private MainConfig mainconfig;
-
-    public ConfigMan(String plugin) {
+    public ConfigMan(Plugin plugin) {
         mainconfig = new MainConfig(plugin);
-    }
-
-    public static ConfigMan getConfig() {
-        return config;
     }
 
     public MainConfig getMainConfig() {

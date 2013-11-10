@@ -2,19 +2,19 @@ package net.larry1123.fly.commands;
 
 import net.canarymod.commandsys.CommandDependencyException;
 import net.larry1123.fly.Fly;
-import net.larry1123.fly.config.ConfigMan;
 import net.larry1123.fly.config.MainConfig;
 import net.larry1123.util.CanaryUtil;
-import net.larry1123.util.plugin.commands.Command;
+import net.larry1123.util.api.plugin.commands.Command;
 
 public class CommandMan {
 
-    private static final MainConfig config = ConfigMan.getConfig().getMainConfig();
+    private final MainConfig config;
     private final Fly plugin;
     private Command fly;
     private boolean loaded = false;
 
     public CommandMan(Fly plugin) {
+        config = plugin.getConfigMan().getMainConfig();
         this.plugin = plugin;
         String[] aliases;
         if (!config.getAlias().equals("")) {
@@ -22,13 +22,13 @@ public class CommandMan {
             aliases[1] = "fly";
             aliases[2] = config.getAlias();
         } else {
-            aliases = new String[] {"fly"};
+            aliases = new String[]{"fly"};
         }
         fly = new CFly(this, aliases);
         if (!regCommand(fly)) {
-            fly = new CFly(this, new String[] {"fly"});
+            fly = new CFly(this, new String[]{"fly"});
             if (!regCommand(fly) && !config.getAlias().equals("")) {
-                fly = new CFly(this, new String[] {config.getAlias()});
+                fly = new CFly(this, new String[]{config.getAlias()});
                 regCommand(fly);
             }
         }
