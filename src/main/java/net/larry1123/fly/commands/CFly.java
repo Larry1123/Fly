@@ -230,8 +230,8 @@ public class CFly implements Command {
         }
         // Limit speed to the max the player can go.
         float playerMaxSpeed = PermissionsMan.getMaxSpeedByCaller(player);
-        if (!PermissionsMan.allowFlyOtherOverRide(caller)) {
-            if (speed > playerMaxSpeed) {
+        if (speed > playerMaxSpeed) {
+            if (!PermissionsMan.allowFlyOtherOverRide(caller)) {
                 if (caller instanceof Player) {
                     speed = playerMaxSpeed;
                     if (caller != player) {
@@ -240,17 +240,19 @@ public class CFly implements Command {
                         caller.message("You can not fly that fast. Setting Speed to " + speed);
                     }
                 }
-            }
-            // Need to limit speed to what the Caller can set
-            if (speed > PermissionsMan.getMaxSpeedByCaller(caller)) {
-                speed = PermissionsMan.getMaxSpeedByCaller(caller);
+                // Need to limit speed to what the Caller can set
+                if (speed > PermissionsMan.getMaxSpeedByCaller(caller)) {
+                    speed = PermissionsMan.getMaxSpeedByCaller(caller);
+                    if (caller != player) {
+                        caller.message("You can not let others fly that fast. Setting Speed to " + speed);
+                    }
+                }
+            } else {
                 if (caller != player) {
-                    caller.message("You can not let others fly that fast. Setting Speed to " + speed);
+                    caller.message("Please know that " + speed + " is faster then what this player is allowed, " + playerMaxSpeed + " is this player's max");
+                    // Allow some people to have full power!
                 }
             }
-        } else {
-            caller.message("Please know that " + speed + " is faster then what this player is allowed, " + playerMaxSpeed + " is this player's max");
-            // Allow some people to have full power!
         }
         // SetUp Done
         HumanCapabilities capabilities = player.getCapabilities();
