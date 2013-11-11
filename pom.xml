@@ -3,7 +3,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.larry1123</groupId>
     <artifactId>Fly</artifactId>
-    <version>0.1.2-SNAPSHOT</version>
+    <version>1.0.0</version>
+    <properties>
+        <Canaryutil.groupID>net.larry1123</Canaryutil.groupID>
+        <Canaryutil.name>CanaryUtil</Canaryutil.name>
+        <Canaryutil.version>0.3.1</Canaryutil.version>
+        <canary.lib.version>1.0-RC-4-SNAPSHOT</canary.lib.version>
+    </properties>
     <build>
         <sourceDirectory>${basedir}/src/main/java/</sourceDirectory>
         <resources>
@@ -39,6 +45,14 @@
                             <token>[version]</token>
                             <value>${project.version}</value>
                         </replacement>
+                        <replacement>
+                            <token>[dependency]</token>
+                            <value>${Canaryutil.name}</value>
+                        </replacement>
+                        <replacement>
+                            <token>[name]</token>
+                            <value>${project.artifactId}</value>
+                        </replacement>
                     </replacements>
                     <regex>false</regex>
                 </configuration>
@@ -63,8 +77,8 @@
             <artifactId>CanaryLib</artifactId>
         </dependency>
         <dependency>
-            <groupId>net.larry1123</groupId>
-            <artifactId>CanaryUtil</artifactId>
+            <groupId>${Canaryutil.groupID}</groupId>
+            <artifactId>${Canaryutil.name}</artifactId>
         </dependency>
     </dependencies>
     <dependencyManagement>
@@ -72,12 +86,12 @@
             <dependency>
                 <groupId>net.canarymod</groupId>
                 <artifactId>CanaryLib</artifactId>
-                <version>1.0-RC-4-SNAPSHOT</version>
+                <version>${canary.lib.version}</version>
             </dependency>
             <dependency>
-                <groupId>net.larry1123</groupId>
-                <artifactId>CanaryUtil</artifactId>
-                <version>0.3.0</version>
+                <groupId>${Canaryutil.groupID}</groupId>
+                <artifactId>${Canaryutil.name}</artifactId>
+                <version>${Canaryutil.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

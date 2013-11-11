@@ -1,74 +1,53 @@
 package net.larry1123.fly.task;
 
 import net.canarymod.Canary;
-import net.canarymod.api.OfflinePlayer;
+import net.canarymod.api.entity.living.humanoid.HumanCapabilities;
 import net.canarymod.api.entity.living.humanoid.Player;
+import net.canarymod.api.world.position.Location;
+import net.canarymod.hook.player.TeleportHook;
 import net.canarymod.tasks.ServerTask;
 import net.canarymod.tasks.ServerTaskManager;
 import net.canarymod.tasks.TaskOwner;
-import net.larry1123.fly.Fly;
 import net.larry1123.util.api.time.StringTime;
-import org.apache.commons.lang3.time.DateUtils;
 
 import java.util.HashMap;
 
+import static net.larry1123.fly.Fly.getPlugin;
+
 public class FlyTime extends ServerTask {
 
-    private static HashMap<OfflinePlayer, Long> playerFlyTime = new HashMap<OfflinePlayer, Long>();
+    private static HashMap<String, Long> playerFlyTime = new HashMap<String, Long>();
 
     public static void addPlayerFor(Player player, long time) {
-        if (time < DateUtils.MILLIS_PER_SECOND) {
-            if (player != null) {
-                playerFlyTime.put(Canary.getServer().getOfflinePlayer(player.getName()), System.currentTimeMillis() + time);
-            }
+        if (time == 0) return;
+        if (player != null) {
+            playerFlyTime.put(player.getName(), System.currentTimeMillis() + time);
         }
     }
 
     public static void addPlayerFor(Player player, String stime) {
         long time = StringTime.millisecondsFromString(stime);
-        if (time < DateUtils.MILLIS_PER_SECOND) {
-            if (player != null) {
-                playerFlyTime.put(Canary.getServer().getOfflinePlayer(player.getName()), System.currentTimeMillis() + time);
-            }
-        }
+        addPlayerFor(player, time);
     }
 
     public static void removePlayer(Player player) {
         if (player != null) {
-            OfflinePlayer offplay = Canary.getServer().getOfflinePlayer(player.getName());
-            if (playerFlyTime.containsKey(offplay)) {
-                playerFlyTime.remove(offplay);
-            }
+            playerFlyTime.remove(player.getName());
         }
     }
 
     /**
      * Current Updater
      */
-    private static FlyTime ticksystem;
-    /**
-     * The plugin that will own the updater
-     */
-    private static TaskOwner plugin = null;
-
-    /**
-     * This is to be only used for internal uses
-     *
-     * @param plugin
-     */
-    public static void setPlugin(Fly plugin) {
-        FlyTime.plugin = plugin;
-    }
+    private static FlyTime tickSystem;
 
     /**
      * Starts the updater polling if the config will allow
      */
     public static void startUpdater() {
-        if (plugin != null) {
-            if (ticksystem == null) {
-                ticksystem = new FlyTime(plugin, DateUtils.MILLIS_PER_SECOND);
-                ServerTaskManager.addTask(ticksystem);
-            }
+        if (tickSystem == null) {
+            tickSystem = new FlyTime(getPlugin(), 0);
+            ServerTaskManager.addTask(tickSystem);
         }
     }
 
@@ -76,9 +55,9 @@ public class FlyTime extends ServerTask {
      * Stops the updater polling
      */
     public static void endUpdater() {
-        if (ticksystem != null) {
-            ServerTaskManager.removeTask(ticksystem);
-            ticksystem = null;
+        if (tickSystem != null) {
+            ServerTaskManager.removeTask(tickSystem);
+            tickSystem = null;
         }
     }
 
@@ -100,7 +79,23 @@ public class FlyTime extends ServerTask {
 
     @Override
     public void run() {
-        //
+        for (String player : playerFlyTime.keySet()) {
+            if (playerFlyTime.get(player) < System.currentTimeMillis()) {
+                Player playerObject = Canary.getServer().getPlayer(player);
+                if (playerObject == null) return;
+                if (playerObject.isAdmin()) return;
+                HumanCapabilities capabilities = playerObject.getCapabilities();
+                capabilities.setFlying(false);
+                capabilities.setMayFly(false);
+                capabilities.setFlySpeed((float) 0.05);
+                playerObject.updateCapabilities();
+                Location loc = playerObject.getLocation();
+                loc.setY(playerObject.getWorld().getHighestBlockAt(loc.getBlockX(), loc.getBlockZ()) + 1);
+                playerObject.teleportTo(loc, TeleportHook.TeleportCause.MOVEMENT);
+                playerObject.message("You may no longer fly");
+                FlyTime.removePlayer(playerObject);
+            }
+        }
     }
 
 }

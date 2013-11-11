@@ -15,7 +15,9 @@ public class MainConfig implements ConfigBase {
     @ConfigField(comments = "TODO", name = "Alias") // TODO
     private String alias = new String(""); // lol
 
-    private final float maxspeed = 1;
+    @ConfigField(comments = {"You can set this to any number but anything over 1 deadly to servers.",
+            "Just an extra note not even admins are allowed pass this speed."}, name = "MaxSpeed")
+    private final float maxSpeed = 1;
 
     public MainConfig(Plugin plugin) {
         configManager = utilConfigManager.getPluginConfig(this, plugin);
@@ -30,7 +32,7 @@ public class MainConfig implements ConfigBase {
     }
 
     public float getMaxSpeed() {
-        return maxspeed;
+        return maxSpeed;
     }
 
 }

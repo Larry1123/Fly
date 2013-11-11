@@ -1,5 +1,5 @@
 main-class=net.larry1123.fly.Fly
-name=Fly
+name=[name]
 author=Larry1123
 version=[version]
-dependencies=CanaryUtil
+dependencies=[dependency]

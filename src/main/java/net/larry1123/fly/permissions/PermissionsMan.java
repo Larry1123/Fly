@@ -10,11 +10,12 @@ import net.larry1123.util.logger.EELogger;
 
 public class PermissionsMan {
 
-    public static final String commandNode = "net.larry1123.fly.command";
-    public static final String otherNode = "net.larry1123.fly.other";
-    public static final String speedNode = "net.larry1123.fly.speed";
+    public static final String commandNode = "fly.command";
+    public static final String otherNode = "fly.other";
+    public static final String otherNodeOverRide = "fly.other.over";
+    public static final String speedNode = "fly.speed";
     public static final String speedPartNode = speedNode + ".0.";
-    public static final String maxNode = "net.larry1123.fly.speed.max";
+    public static final String maxNode = "fly.speed.max";
 
     private static float maxSpeed = Fly.getPlugin().getConfigMan().getMainConfig().getMaxSpeed();
 
@@ -34,7 +35,23 @@ public class PermissionsMan {
         return caller.hasPermission(otherNode);
     }
 
+    public static boolean allowFlyOtherOverRide(MessageReceiver caller) {
+        if (caller instanceof Server) {
+            return true;
+        }
+        if (caller instanceof Player) {
+            if (((Player) caller).isAdmin()) {
+                return true;
+            }
+        }
+        return caller.hasPermission(otherNodeOverRide);
+    }
+
     public static boolean canFly(Player player) {
+        // if we know they are an admin lets not waste anymore time
+        if (player.isAdmin()) {
+            return true;
+        }
         if (hasMaxFlySpeed(player)) {
             return true;
         }
@@ -75,6 +92,9 @@ public class PermissionsMan {
     }
 
     private static float getMaxSpeedForPlayer(Player player) {
+        if (player.isAdmin()) {
+            return maxSpeed;
+        }
         float speed = 0;
         if (hasMaxFlySpeed(player)) {
             speed = maxSpeed;

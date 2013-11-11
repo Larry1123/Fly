@@ -25,7 +25,6 @@ public class Fly extends UtilPlugin implements TaskOwner {
     @Override
     public boolean enable() {
         commands = new CommandMan(this);
-        FlyTime.setPlugin(this);
         FlyTime.startUpdater();
         getLogger().info("Plugin Enabled");
         return commands.didCommandLoad();
