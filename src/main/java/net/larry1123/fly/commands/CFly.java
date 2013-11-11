@@ -64,7 +64,11 @@ public class CFly implements Command {
                 if (!player.getCapabilities().mayFly()) {
                     speed = (float) 0.05;
                 } else {
-                    speed = 0;
+                    if (player.getMode().equals(GameMode.CREATIVE)) {
+                        speed = player.getCapabilities().getFlySpeed();
+                    } else {
+                        speed = 0;
+                    }
                 }
             } else if (parameters.length == 2) {
                 if (Canary.getServer().getPlayer(parameters[1]) != null) {
